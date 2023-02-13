@@ -7,12 +7,16 @@ public class PlayerShipController : MonoBehaviour
     Rigidbody rb;
     private Vector3 lastPosition;
     private Vector3 direction = Vector3.zero;
+    
+
 
     [Header("Movement")]
-    [SerializeField] float _moveMentSpeed;
+    [SerializeField] float _MovementSpeed;
+    [SerializeField] float _MaxSpeed;
     [SerializeField] float currentSpeed;
     [SerializeField] bool canRotate;
-
+    [SerializeField] float decelerationMultiplier;
+    public float velocityMagnitude;
 
     [Header("Steering")]
     [SerializeField] float _turningSpeed;
@@ -32,7 +36,7 @@ public class PlayerShipController : MonoBehaviour
 
         canRotate = false;
        
-                if (Vertical > 0.2f)
+                if (Vertical > 0.1f || Vertical < -0.1f)
                 {
                     canRotate = true;
                 }
@@ -43,15 +47,28 @@ public class PlayerShipController : MonoBehaviour
     {
 
 
-        currentSpeed = (transform.position - lastPosition).magnitude / Time.deltaTime;
+        //currentSpeed = (transform.position - lastPosition).magnitude / Time.deltaTime;
 
-        //Save the position for the next update
-        lastPosition = transform.position;
+        ////Save the position for the next update
+        //lastPosition = transform.position;
+
+        //check if the turning is able or not
         if (canRotate == true)
          { rb.AddTorque(0, direction.x *_turningSpeed, 0); }
 
+        //add movement force
+        rb.AddForce( transform.forward * direction.y * _MovementSpeed);
+        velocityMagnitude = rb.velocity.magnitude;
 
-        rb.AddForce(transform.forward * direction.y * _moveMentSpeed);
+        //create limitation for the _MovementSpeed 
+        if (velocityMagnitude >= _MaxSpeed)
+        {
+            rb.AddForce(-rb.velocity * decelerationMultiplier, ForceMode.Acceleration);
+        }
+        else
+        {
+            rb.velocity = transform.forward * velocityMagnitude;
+        }
     }
 
 }
